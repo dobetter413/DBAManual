@@ -1,0 +1,191 @@
+# Oracle 数据导入导出
+
+## exp\imp 工具
+
+
+### 导入导出方式
+1. 使用 exp\imp 导入导出
+   1.1 exp 导出命令
+   ```
+    exp 用户名/密码@数据库IP:端口号/orcl file=导出的目标文件名称 tables=要导出的表名(多个表时用逗号隔开)
+    exp TJ_DATA/a123456@10.10.1.54:1521/orcl file=export.dmp tables=USER_INFO,POLICY_INFO;
+   ```
+   1.2 imp 导入命令
+   ```
+    imp 用户名/密码@数据库IP:端口号/orcl file=导出的目标文件名称 tables=要导出的表名(多个表时用逗号隔开)
+    imp TJ_DATA/a123456@10.10.1.54:1521/orcl file=export.dmp tables=USER_INFO,POLICY_INFO;
+   ```
+
+   
+2. 使用expdp\impdp 数据泵导入导出
+    2.1 expdp 导出命令
+    ```
+    expdp 用户名/密码@数据库IP:端口号/orcl file=导出的目标文件名称 tables=要导出的表名(多个表时用逗号隔开)
+    expdp TJ_DATA/a123456@10.10.1.54:1521/orcl file=export.dmp tables=USER_INFO,POLICY_INFO;
+    ```
+    2.2 impdp 导入命令
+    ```
+    impdp 用户名/密码@数据库IP:端口号/orcl file=导出的目标文件名称 tables=要导出的表名(多个表时用逗号隔开)
+    impdp TJ_DATA/a123456@10.10.1.54:1521/orcl file=export.dmp tables=USER_INFO,POLICY_INFO
+    ```
+    2.3 expdp 导出只能导出大oracle 所在机器
+
+### exp/imp 导入选项
++ FULL 全量导入
++ FROMUSER,TOUSER   源oracle 用户，目标oracle 用户
++ IGNORE 忽略过程报错，继续执行
++ log=xx.log    日志路径
++ file=xx.dmp   导出文件路径
+
+
+   
+### 使用示例
+1. 导出指定用户下的全部表
+    ```
+    exp DEMO/DEMO@ORCL file=D:\dmp\DEMO_20220121.dmp owner=DEMO buffer=8192000 log=D:\dmp\DEMO_20220121_daochu.log
+    ```
+2. 导出指定表名
+    ```
+    exp DEMO/DEMO@ORCL file=D:\dmp\DEMO_20220121_ep.dmp tables=('EP_SYS_CQ_COND','EP_SYS_CONSIGN_REC','EP_SYS_CQ_COND_DEF') 
+    ```
+3. 导出以 ** 开头的表
+    ```
+    exp DEMO/DEMO@ORCL_MDPC file=D:\dmp\DEMO_20220307_demo.dmp tables=(DEMO.DEMO_%) buffer=8192000 log=D:\dmp\DEMO_20220307_demo_daochu.log
+    ```
+4. 实战 
+     ```
+    exp cospace/lilo123@172.25.4.129:1521/chaoyang file=/greatdts/testdata/checkfaild.dmp tables=GDMS.MV_AREACODE_NUMS,GDMS. GDMS_PROJECT_HANDLE_RANK,GDMS.GDMS_OPINION_TYPE,GDMS.GDMS_OPINION_RESULT,GDMS.GDMS_OPINION_COMEFORM log=/greatdts/testdata/  checkfaildexp.log 
+    imp caomeng/oracle@127.0.0.1:1521/ORCL  file=./checkfaild.dmp fromuser=GDMS  touser=caomeng log=./imp.log 
+    ```
+
+
+### 注意事项
+1. 字符集问题
+   导出导出的时候需要注意数据库的字符集是否一致,使用工具导入的话也需要确认工具的字符集
+    ```
+    --查询服务端的编码命令
+    SELECT * FROM Nls_Database_Parameters where paramete= 'NLS_CHARACTERSET';
+    --查询客户端软件的编码命令
+    SELECT Userenv('language') FROM dual where paramete= 'NLS_CHARACTERSET';
+    ```
+2. 导出目录问题
+   导出时要确认导出文件的目录,使用oracle自带的逻辑目录或者自己创建逻辑目录,需要用到目录名称和目录路径,在导出时只需指定目录名称,导出的文件存放在目录路径下
+   ```
+    --2.1.查看oracle已有的目录,
+    select * from dba_directories;
+    --2.2.自己创建逻辑目录
+    create directory 目录名称 as ‘目录路径';
+    --2.3.如果是自己创建的目录,需要给用户添加读写此文件夹的权限
+    grant read,write on directory dir to scott;
+   ```
+3. 空间问题
+   空间不足时导入或导出会停止
+
+4. 分区表不能使用 exp 导出，只能使用 expdp
+5. dmp 文件导入时，数据库不能存在同名的表
+6. 导入时，数据库表的表空间要一致，在命令中可以修改表空间，在导入命令后加`remap_tablespace=原表空间名:新表空间名`
+    ```
+    impdp TJ_DATA/a123456@10.10.1.54:1521/orcl file=export.dmp tables=USER_INFO remap_tablespace=OLD_SPACE:NEW_SPACE
+    ```
+7. 如果表空间不足，可以给当前表空间新增数据文件来扩容，数据文件可以设置初始大小，并设置自增，也可以设置最大值
+    ```
+    ALTER TABLESPACE 表空间名 ADD DATAFILE ‘数据文件路径及名称’ size 文件初始大小 autoextend on (设置是否开启自增) MAXSIZE 文件最大值;
+    ALTER TABLESPACE TJ_DATA ADD DATAFILE '/oracle/oradata/ds.dbf' size 1024M autoextend on MAXSIZE 20480M;
+    ```
+8. 表空间限制
+    导入报错如下:
+    ```
+    [oracle@gip ~]$ imp WISDOMGOV/oracle@127.0.0.1:1521/ORCL file=/home/oracle/EGS_EF_CORP_CF_DOCUMENT.dmp   log=./imp.log full=y 
+
+    Import: Release 11.2.0.4.0 - Production on Thu Mar 2 15:57:51   2023
+
+    Warning: the objects were exported by COSPACE, not by you
+
+    import done in US7ASCII character set and AL16UTF16 NCHAR   character set
+    import server uses AL32UTF8 character set (possible charset     conversion)
+    export client uses ZHS16GBK character set (possible charset     conversion)
+    . importing COSPACE's objects into WISDOMGOV
+    . importing WISDOMGOV's objects into WISDOMGOV
+    . . importing table      "EGS_EF_CORP_CF_DOCUMENT"
+    IMP-00058: ORACLE error 1950 encountered
+    ORA-01950: no privileges on tablespace 'WISDOMGOV'
+    Import terminated successfully with warnings.
+    ```
+    报错原因: 该用户在表空间上没有足够的配额
+
+    解决方式: 为该用户分配足够的表空间配额
+    ```
+    alter user <username> quota <k/m/unlimited> on <tablespace_name>;
+    ```
+
+
+
+# 附录
+## sqlplus、exp、imp 工具安装
+1. 安装包下载
+    https://www.oracle.com/hk/database/technologies/instant-client/linux-x86-64-downloads.html
+    ```
+    instantclient-basic-linux.x64-11.2.0.4.0.zip
+    instantclient-sqlplus-linux.x64-11.2.0.4.0.zip
+    instantclient-sdk-linux.x64-11.2.0.4.0.zip
+    ```
+2. 解压安装包
+    ```
+    unzip instantclient-basic-linux.x64-11.2.0.4.0.zip
+    unzip instantclient-sqlplus-linux.x64-11.2.0.4.0.zip
+    unzip instantclient-sdk-linux.x64-11.2.0.4.0.zip
+    ```
+3. 创建连接配置文件
+    可选
+    在 instantclient_11_2 目录下创建 network/admin 目录，使用命令
+    ```
+             mkdir  -p network/admin
+    ```
+    在admin 目录下创建 tnsnames.ora,文件内容类似如下:
+    ```
+    # tnsnames.ora Network Configuration File: /sdb1/oracle/11gR2_database_X64/product/11.2.0.4.0/db_1/network/admin/tnsnames.ora  
+      # Generated by Oracle configuration tools.  
+     ZKL =  
+        (DESCRIPTION =  
+          (ADDRESS = (PROTOCOL = TCP)(HOST = glnode04)(PORT = 1521))  
+          (CONNECT_DATA =  
+            (SERVER = DEDICATED)  
+            (SERVICE_NAME = zkl)  
+           )  
+        )  
+    ```
+    也可以从oracle 安装机器寻找这个配置文件
+    `locate tnsnames.ora`
+
+4. 配置环境变量
+   切换到要使用的系统用户下
+   `vi ~/.bashrc`
+    ```
+    export ORACLE_HOME=/你的安装路径/instantclient_11_2  
+    export PATH=$ORACLE_HOME:$PATH  
+    export TNS_ADMIN=$ORACLE_HOME/network/admin  
+    export LD_LIBRARY_PATH=$ORACLE_HOME:$LD_LIBRARY_PATH   
+    export NLS_LANG='simplified chinese_china.ZHS16GBK'  
+    ```
+    source ~/.bashrc
+
+5. 测试 sqlplus
+   `sqlplus`
+6. exp/imp 配置
+   1. 拷贝oracle 安装目录的 exp/expdp/imp/impdp
+    ```
+    /oracle/orahome/product/11.2.0.4.0/bin/exp
+    /oracle/orahome/product/11.2.0.4.0/bin/imp
+    复制到
+    /你的安装路径/instantclient_11_2
+    ```
+   2. 创建目录
+    在/你的安装路径/instantclient_11_2 下创建目录
+    mkdir -p rdbms/mesg/
+   3. 拷贝文件 
+    ```
+    /oracle/orahome/product/11.2.0.4.0/rdbms/mesg/expus.msb
+    /oracle/orahome/product/11.2.0.4.0/rdbms/mesg/impus.msb
+    复制到
+    /你的安装路径/instantclient_11_2 /rdbms/mesg/
+    ```

@@ -1,0 +1,21 @@
+{
+  "title" : "宝典",
+  "author" : "CM",
+  "description" : "DBA 技能栈",
+  "language" : "zh-hans",
+  "plugins": [
+	"toggle-chapters",
+	"-sharing",
+	"tbfed-pagefooter",
+	"-lunr",
+	"-search",
+	"search-pro"
+  ],
+  "pluginsConfig": {
+    "tbfed-pagefooter": {
+		"copyright": "Copyright &copy ruarua 2023",
+		"modify_label": "该文章修订时间：",
+		"modify_format": "YYYY-MM-DD"
+	}
+ } 
+}
