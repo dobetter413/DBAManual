@@ -22,8 +22,25 @@
 
 
 ## Oracle 对象表
-#查看对象类型
+1. 查看对象类型
 `select OBJECT_NAME,OBJECT_TYPE from all_objects where OWNER='COSPACE' and OBJECT_NAME in ('ACT_TMP','V_WORKFLOW_TODO_TASK','V_WORKFLOW_PROCDEF');`
+
+2. 查看库下所有对象
+```
+select OBJECT_NAME,OBJECT_TYPE from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB');
+```
+3. 统计库下各对象数
+```
+select OBJECT_TYPE,count(OBJECT_NAME) from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB') group by OBJECT_TYPE;
+```
+4. 某一类对象列表
+```
+select OBJECT_NAME from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE='TABLE';
+```
+5. 重名对象
+```
+select OBJECT_NAME,count(OBJECT_NAME) from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB') group by OBJECT_NAME having count(OBJECT_NAME)>1;
+```
 
 ## 字段类型查询
 1. 查看字段长度超过200 的表名和字段
