@@ -3,41 +3,45 @@
 ## 表信息统计
 
 1. 表大小统计
-   ```
-    select t.segment_name, t.segment_type, sum(t.bytes / 1024 / 1024) "占用空间(M)"
-    from dba_segments t
-    where t.segment_type='TABLE'
-    and t.segment_name ='GDMS_OPINION_COMEFORM'
-    group by OWNER, t.segment_name, t.segment_type;
-   ```
+```
+ select t.segment_name, t.segment_type, sum(t.bytes / 1024 / 1024) "占用空间(M)"
+ from dba_segments t
+ where t.segment_type='TABLE'
+ and t.segment_name ='GDMS_OPINION_COMEFORM'
+ group by OWNER, t.segment_name, t.segment_type;
+```
 2. 统计Oracle 数据库用户所有表的大小
-   ```
-    SELECT OWNER as "username",sum(BYTES)/1024/1024/1024 as "alltablesize(GB)" FROM DBA_SEGMENTS  WHERE SEGMENT_NAME in (select t2.OBJECT_NAME from dba_objects t2 where t2.OBJECT_TYPE = 'TABLE') group by OWNER order by 2 desc;
-   ```
+```
+ SELECT OWNER as "username",sum(BYTES)/1024/1024/1024 as "alltablesize(GB)" FROM DBA_SEGMENTS  WHERE SEGMENT_NAME in (select t2. OBJECT_NAME from dba_objects t2 where t2.OBJECT_TYPE = 'TABLE') group by OWNER order by 2 desc;
+```
 
 3. 查看每个表空间的大小
-    ```
-     Select Tablespace_Name,Sum(bytes)/1024/1024  as "tbs(M)"From Dba_Segments Group By Tablespace_Name order by 2 desc;
-    ```
+ ```
+  Select Tablespace_Name,Sum(bytes)/1024/1024  as "tbs(M)"From Dba_Segments Group By Tablespace_Name order by 2 desc;
+ ```
 
 
 ## Oracle 对象表
 1. 查看对象类型
-`select OBJECT_NAME,OBJECT_TYPE from all_objects where OWNER='COSPACE' and OBJECT_NAME in ('ACT_TMP','V_WORKFLOW_TODO_TASK','V_WORKFLOW_PROCDEF');`
+```
+select OBJECT_NAME,OBJECT_TYPE from all_objects where OWNER='COSPACE' and OBJECT_NAME in ('ACT_TMP','V_WORKFLOW_TODO_TASK','V_WORKFLOW_PROCDEF');
+```
 
 2. 查看库下所有对象
+>因为索引和LOB也是属于Oracle 的对象，大部分情况下无需单独列出，索引这里没有统计这两种对象类型
+
 ```
 select OBJECT_NAME,OBJECT_TYPE from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB');
 ```
-3. 统计库下各对象数
+1. 统计库下各对象数
 ```
 select OBJECT_TYPE,count(OBJECT_NAME) from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB') group by OBJECT_TYPE;
 ```
-4. 某一类对象列表
+1. 某一类对象列表
 ```
 select OBJECT_NAME from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE='TABLE';
 ```
-5. 重名对象
+1. 重名对象
 ```
 select OBJECT_NAME,count(OBJECT_NAME) from all_objects where OWNER='GOVERNMENT' and OBJECT_TYPE not in ('INDEX','LOB') group by OBJECT_NAME having count(OBJECT_NAME)>1;
 ```
@@ -49,12 +53,12 @@ select TABLE_NAME,COLUMN_NAME,DATA_TYPE,DATA_LENGTH FROM user_tab_columns WHERE 
 ```
 
 2. 查看指定用户字段信息
-   + 查看指定用户下包含LOB 类型的字段
+
++ 查看指定用户下包含LOB 类型的字段
     ```
     select TABLE_NAME,COLUMN_NAME,DATA_TYPE FROM all_tab_columns WHERE DATA_TYPE like '%LOB%' and owner='SXML_CY';
     ```
-
-  + 查看指定用户下，含有LOB 字段的表和每个表LOB字段的个数
++ 查看指定用户下，含有LOB 字段的表和每个表LOB字段的个数
     ```
     select TABLE_NAME,count(COLUMN_NAME) FROM all_tab_columns WHERE DATA_TYPE like '%LOB%' and owner='SXML_CY' group by TABLE_NAME;
     ```
