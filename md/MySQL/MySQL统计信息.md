@@ -1,0 +1,6 @@
+# 统计信息
+统计信息没有更新问题排查：
+mysql8.0、greatdb 新增特性，统计信息会缓存到 information_schema 数据字典里面。统计信息采集和计算还是有innodb 存储引擎层来做然后缓存到数据字典里面。
+innodb存储层由参数innodb_stats_auto_recalc控制是否自动重新计算统计信息，当表中数据有大于10%被修改时就会重新计算统计信息（注意，由于统计信息重新计算是在后台发生，而且它是异步处理，这个可能存在延时，不会立即触发。如果关闭了innodb_stats_auto_recalc,需要通过analyze table来保证统计信息的准确性。不管有没有开启全局变量innodb_stats_auto_recalc。即使innodb_stats_auto_recalc=OFF时，当新索引被增加到表中，所有索引的统计信息会被重新计算并且更新到innodb_index_stats表上。
+information_schema 数据字典的统计信息的更新是由 information_schema_stats_expiry 参数控制缓存过期时间，参数可以动态设置，有全局和会话级别。默认值为	86400s，即24小时。该参数值不建议设置太小，如果设置太小则导致更新数据字典频繁，影响性能。
+

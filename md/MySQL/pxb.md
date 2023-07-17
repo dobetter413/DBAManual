@@ -48,3 +48,19 @@ xbstream -x < ./backup.xbstram -C ./back
 
 
 
+
+
+
+
+```
+xtrabckup  --defaults-file=/etc/my.cnf  -uroot -pabc123 --host=127.0.0.1 -P3307 --backup --compress --target-dir=/greatdb_data/pxb_backup/full/20230711 2>./backup.log
+xtrabackup --decompress --remove-original  --target-dir=/greatdb_data/pxb_backup/full/20230711
+xtrabackup --prepare   --target-dir=/greatdb_data/pxb_backup/full/20230711
+xtrabackup --defaults-file=/greatdb_data/conf/greatdb3307.cnf --copy-back --target-dir=/greatdb_data/pxb_backup/full/20230711
+
+
+
+--compress-threads=
+--parallel=
+
+```
