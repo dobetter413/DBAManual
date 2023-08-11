@@ -119,6 +119,12 @@ mysql> select * from sys.schema_table_lock_waits where waiting_pid!=blocking_pid
 1 row in set (0.00 sec)
 ```
 
+另外，针对 sql_kill_blocking_connection 进行group by 也能快速去除重复列，快速定位源头。
+```
+select sql_kill_blocking_connection from sys.schema_table_lock_waits where waiting_pid!=blocking_pid group by sql_kill_blocking_connection;
+```
+
+
 ### 方式二：
 >此SQL 针对DML 事务未提交，阻塞DDL 导致MDL 锁的场景进行排查,查询出阻塞DDL 的DML
 ```
@@ -163,6 +169,16 @@ GROUP BY thread_id
 ) t2
 WHERE t1.granted_thread_id = t2.thread_id \G
 ```
+
+### 方式三
+```
+#通过metadata_locks 定位状态只为GRANTED的线程，此线程大概为为锁的源头。PENGING 状态的锁是被阻塞的，处理此状态的锁不能从根本上解决此问题。
+select MDL.*,TH.PROCESSLIST_ID from (select * from performance_schema.metadata_locks where OWNER_THREAD_ID not in (select OWNER_THREAD_ID from performance_schema.metadata_locks where LOCK_STATUS='PENDING') and OBJECT_SCHEMA !='performance_schema') MDL join performance_schema.threads TH on MDL.OWNER_THREAD_ID=TH.THREAD_ID;
+
+#通过上述SQL 找到GRANTED 状态线程对应的 PSID，使用该ID找到对应的会话信息。此方式存在一些限制，当阻塞源头为DDL时，查到PSID后只能查 processlist 表定位DDL SQL，不能通过如下SQL 定位，因为该SQL 使用了 innodb_trx 表。
+SELECT   ps.id 'PROCESS ID',   ps.USER,   ps.HOST,   esh.EVENT_ID,   trx.trx_started,   esh.event_name 'EVENT NAME',   esh.sql_text 'SQL',   ps.time FROM   performance_schema.events_statements_history esh   JOIN performance_schema.threads th ON esh.thread_id = th.thread_id   JOIN information_schema.PROCESSLIST ps ON ps.id = th.processlist_id   LEFT JOIN information_schema.innodb_trx trx ON trx.trx_mysql_thread_id = ps.id WHERE   trx.trx_id IS NOT NULL   AND ps.USER != 'SYSTEM_USER'   AND ps.id in (9)   ORDER BY   esh.EVENT_ID;
+```
+
 
 --- 
 >FOR MySQL 5.7
@@ -314,3 +330,4 @@ metadata_locks是5.7中被引入，记录了metadata lock的相关信息，包�
 ```
 UPDATE performance_schema.setup_instruments SET ENABLED = 'YES', TIMED = 'YES'WHERE NAME = 'wait/lock/metadata/sql/mdl';
 ```
+
