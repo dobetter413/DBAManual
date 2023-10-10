@@ -28,6 +28,7 @@
   * [Oracle MySQL字段映射](md/Oracle/Oracle_mysql字段映射.md)
   * [Oracle 数据导入导出](md/Oracle/Oracle数据导入导出.md)
   * [Oracle 元数据](md/Oracle/Oracle元数据.md)
+  * [Oracle 清理ALter和Trace日志](md/Oracle/Oracle清空Alter和Trace日志.md)
 
 * [Linux](md/Linux/Linux性能信息.md)
   * [Linux 性能信息](md/Linux/Linux性能信息.md)
