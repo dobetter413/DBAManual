@@ -160,7 +160,7 @@ glibc 采用 ptmalloc2 作为内存分配器，有个缺点就是用户free掉�
 
 ## 清理glibc 内存碎片
 
-`gdb --batch --pid 21680 --ex 'call malloc_trim(0)'`
+`gdb --batch --pid 21680 --ex 'call (void) malloc_trim(0)'`
 
 ## 安装 jemalloc 
 ```

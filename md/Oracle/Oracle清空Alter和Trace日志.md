@@ -44,3 +44,8 @@ Alert日志保存位置：
  
 6. 备份
 `mv * /data/back`
+
+
+## 问题处理
+ORA-03113: end-of-file on communication channel
+https://www.jianshu.com/p/97b86d95894b
