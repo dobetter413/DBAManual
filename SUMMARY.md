@@ -19,6 +19,7 @@
   * [MySQL SQL优化 Case2-标量子查询条件下推](md/MySQL/标量子查询条件下推.md)
   * [MySQL 大事务导致复制崩溃BUG](md/MySQL/大事务导致主从异常中断.md)
   * [MySQL 大事务和data_lock相关监控冲突](md/MySQL/大事务和ps.data_locks冲突.md)
+  * [MySQL 性能优化实践](md/MySQL/MySQL性能优化实践.md)
 
 * [Oracle](md/Oracle/Oracle19c安装.md) 
   * [Oracle 19c 安装部署](md/Oracle/Oracle19c安装.md)
@@ -41,6 +42,7 @@
   * [Wireshark](md/NetWork/wireshark.md)
   * [Tshark](md/NetWork/tshark.md)
   * [丢包分析](md/NetWork/analyze_loss_package.md)
+  * [tcp_tw_recycle 故障分析](md/NetWork/tcp_tw_recycle故障分析.md)
 
 * [工具](md/工具/my2sql.md)
   * [my2sql](md/工具/my2sql.md)
