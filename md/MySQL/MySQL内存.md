@@ -175,7 +175,7 @@ malloc-lib=/usr/lib/libjemalloc.so
 启动mysql 验证是否生效
 `lsof -n | grep libjemalloc.so`
 
-
+`lsof -p pidof mysqld' | grep libj`
 ## MySQL 内存分配器选型测试
 
 > 对glibc、jemalloc、tcmalloc 三种内存分配器的对比
